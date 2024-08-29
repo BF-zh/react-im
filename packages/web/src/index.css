@@ -1,0 +1,51 @@
+.im-container {
+  background-image: linear-gradient(to right, rgba(255, 236, 209, .4) 0%, rgba(252, 182, 159, .6) 100%);
+  height: 100vh;
+  color: white;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 300;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.im-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  background-image: url("./assets/im-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+
+
+.in-inner {
+  background: rgba(255, 255, 255, .1);
+  backdrop-filter: blur(1px);
+}
+
+input {
+  font-weight: 500;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  border-radius: 3px;
+  background: transparent;
+  -webkit-box-shadow: inset 0 0 5px transparent;
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: transparent;
+  -webkit-box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+}
