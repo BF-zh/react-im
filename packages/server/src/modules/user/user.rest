@@ -1,0 +1,38 @@
+@host = http://localhost:3000/user
+
+@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdmF0YXIiOiJodHRwOi8vdGhpcmRxcS5xbG9nby5jbi9nP2I9c2RrJms9N0s3d0pLUWtKMGlidEs3YVJRTnpOdVEmcz0xNDAmdD0xNjUxMjg1MDMzIiwibmlja25hbWUiOiLigaLljJfpo44iLCJ0eXBlIjoicXEiLCJ1c2VybmFtZSI6IjI1ODE4MDc0MTciLCJpYXQiOjE3MjUyOTE4OTh9.tz944EA7xoiCkZbON_9ADCQeMAk6qsKoMvYWdkebm1Q
+
+### get all user api
+GET {{host}}/ HTTP/1.1
+Authorization: {{token}}
+
+### get one user
+GET {{host}}/1000 HTTP/1.1
+Authorization: {{token}}
+
+### get one user detail
+GET {{host}}/detail/1000 HTTP/1.1
+Authorization: {{token}}
+
+### create user
+POST {{host}}/ HTTP/1.1
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "password": "password123"
+}
+
+### update user
+PUT {{host}}/1 HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "Jane Doe",
+  "email": "jane.doe@example.com"
+}
+
+### delete user
+DELETE {{host}}/1 HTTP/1.1
