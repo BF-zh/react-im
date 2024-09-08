@@ -1,11 +1,17 @@
 {
   "compilerOptions": {
     "incremental": true,
-    "target": "ES2021",
+    "target": "ES2023",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "baseUrl": "./",
-    "module": "commonjs",
+    "module": "NodeNext",
+    "paths": {
+      "@modules/*": ["src/modules/*"],
+      "@lib/*": ["src/lib/*"],
+      "@common/*": ["src/common/*"],
+      "@entities/*": ["src/entities/*"]
+    },
     "strictBindCallApply": false,
     "strictNullChecks": false,
     "noFallthroughCasesInSwitch": false,
@@ -17,5 +23,6 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": false,
     "skipLibCheck": true
-  }
+  },
+  "typeRoots": ["./src/common/@types"]
 }

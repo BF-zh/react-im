@@ -1,30 +1,56 @@
+import process from 'node:process'
 import { NestFactory } from '@nestjs/core'
-import { ValidationPipe, VersioningType } from '@nestjs/common'
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
+import { Logger, ValidationPipe, VersioningType } from '@nestjs/common'
+import { ResponseInterceptor } from '@common/interceptors'
+import { HttpExceptionFilter } from '@common/filters'
+import { InternalDisabledLogger } from '@lib/pino'
+import chalk from 'chalk'
+import compression from 'compression'
+import { AppUtils } from '@common/helpers'
+import { ConfigService } from '@nestjs/config'
+import { MikroOrmModule } from '@mikro-orm/nestjs'
+import helmet from 'helmet'
+import { SocketIOAdapter } from '@common/adapter/socket.adapter'
 import { AppModule } from './modules/app.module'
-import { ResponseInterceptor } from './interceptors/response.interceptor'
-import { HttpExceptionFilter } from './filters/http-exception.filter'
 
+const logger = new Logger('Bootstrap')
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     snapshot: true,
-    logger: ['error', 'warn', 'debug', 'log'],
+    logger: new InternalDisabledLogger(),
   })
   app.enableVersioning({
     type: VersioningType.URI,
     prefix: 'v',
   })
-  const config = new DocumentBuilder()
-    .setTitle('MyChat API')
-    .setDescription('MyChat API description')
-    .setVersion('1.0')
-    .build()
-  const document = SwaggerModule.createDocument(app, config)
-  SwaggerModule.setup('doc', app, document)
-  app.useGlobalPipes(new ValidationPipe())
-  app.useGlobalInterceptors(new ResponseInterceptor())
-  app.useGlobalFilters(new HttpExceptionFilter())
+  app.use(compression())
+  app.use(helmet())
+  const configService = app.get(ConfigService<Configs, true>)
+  const globalPrefix = configService.get('app.prefix', { infer: true })
+
+  // =========================================================
+  // configure socket
+  // =========================================================
+
+  const redisIoAdapter = new SocketIOAdapter(app, configService)
+
+  await redisIoAdapter.connectToRedis()
+  app.useWebSocketAdapter(redisIoAdapter)
+
+  // =========================================================
+  // configure shutdown hooks
+  // =========================================================
+
+  app.setGlobalPrefix(globalPrefix)
   app.enableCors()
-  await app.listen(3000)
+  const port = process.env.PORT ?? configService.get('app.port', { infer: true })!
+  AppUtils.setupSwagger(app, configService)
+  await app.listen(port)
+
+  const appUrl = `http://localhost:${port}/${globalPrefix}`
+
+  logger.log(`==========================================================`)
+  logger.log(`🚀 Application is running on: ${chalk.blueBright(appUrl)}`)
+  logger.log(`==========================================================`)
 }
 bootstrap()

@@ -1,7 +1,13 @@
 import { Controller, Get } from '@nestjs/common'
-import { AppService } from './app.service'
+import { PublicApi } from '@common/guards'
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor() {}
+
+  @PublicApi()
+  @Get('ping')
+  ping(): string {
+    return 'pong'
+  }
 }

@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import axios from 'axios'
-import * as Cookie from 'cookie'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
 import { v4 as uuidv4 } from 'uuid'
 import { UserService } from '../user/user.service'
-import { Cookies } from '../../utils'
+import { Cookies } from '../../common/utils'
 import { CreateUserDto } from '../user/dto/create-user.dto'
 import type { IMuiscUser } from './auth.userinfo.dto'
 
@@ -96,7 +95,7 @@ export class AuthService {
     const O_cookie = format(headers['set-cookie']?.join(';') || '')
     const cookies = await this.GET_QQ_Cookie(O_cookie)
     const token = await this.GET_Token(cookies)
-    return { code, token }
+    return { code, token, msg: codeMap[code] }
   }
 
   /**
@@ -218,7 +217,7 @@ export class AuthService {
    * @408 等待扫码
    */
   async GET_WX_State(cookie: string) {
-    const { uuid } = Cookie.parse(cookie)
+    const { uuid } = parse(cookie)
     const url = `https://lp.open.weixin.qq.com/connect/l/qrconnect?uuid=${uuid}&_=${Date.now()}`
     const { data } = await axios.get(url, {
       headers: {
@@ -235,9 +234,11 @@ export class AuthService {
     }
     if (!code)
       return { status: Number(status), msg: statusMap[status] }
+    console.log(code)
     const cookies = await this.GET_WX_Cookies(code)
+    console.log(cookies)
     const token = await this.GET_Token(cookies)
-    return { token, code }
+    return { token, code, msg: statusMap[status] }
   }
 
   /**
@@ -274,7 +275,7 @@ export class AuthService {
         'Accept-Language': 'zh-CN,zh;q=0.9',
         'Priority': 'u=1,i',
       },
-    }).then(({ headers }) => format(headers['set-cookie'].join(';')))
+    }).then(({ headers }) => format(headers['set-cookie']?.join(';') || ''))
   }
 
   /**
@@ -307,6 +308,9 @@ export class AuthService {
    * 获取 用户信息 新
    */
   private async GET_User_New(cookie: string) {
+    if (!cookie)
+      throw new Error('获取信息失败 请重新登陆')
+
     const { qqmusic_key, p_skey, p_uin, wxuin } = parse(cookie)
     const uin = p_uin?.replace('o', '') || wxuin || ''
     const g_tk = this.QQ_bkn(qqmusic_key ?? p_skey)
@@ -366,7 +370,7 @@ export class AuthService {
 
   async GET_Token(cookie: string) {
     const User = await this.GET_User_New(cookie)
-    return this.JWT.sign(User, {
+    return this.JWT.sign({ ...User, role: 'user' }, {
       secret: this.confg.get('JWT_SECRET'),
     })
   }

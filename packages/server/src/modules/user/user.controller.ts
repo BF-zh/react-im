@@ -1,9 +1,10 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Version } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, Query, Version } from '@nestjs/common'
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
-import { SetRole } from 'src/guards/role.guard'
+import { SetRole } from '@common/guards'
 import { UserService } from './user.service'
 import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
+import { FindUserListDto } from './dto/find-user.dto'
 
 @Controller({
   path: 'user',
@@ -14,13 +15,15 @@ export class UserController {
 
   @Post()
   @ApiOperation({ description: '创建用户' })
+  @SetRole(['admin'])
   create(@Body() createUserDto: CreateUserDto) {
-    return console.log(createUserDto)
+    return this.userService.create(createUserDto)
   }
 
   @Get()
-  findAll() {
-    return 'this is the user controller'
+  // @SetRole(['admin'])
+  findAll(@Query('page', ParseIntPipe) page: number, @Query('pageSize', ParseIntPipe) pageSize: number, @Query() data: FindUserListDto) {
+    return this.userService.findAll({ page, pageSize, ...data })
   }
 
   @Get(':id')
@@ -33,7 +36,7 @@ export class UserController {
     return this.userService.userInfo(+id)
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(+id, updateUserDto)
   }

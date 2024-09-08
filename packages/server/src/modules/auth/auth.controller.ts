@@ -1,10 +1,10 @@
 import { Buffer } from 'node:buffer'
 import { Body, Controller, Delete, Get, Headers, Param, Patch, Post, Res } from '@nestjs/common'
-import { ApiBody, ApiOkResponse, ApiOperation, ApiResetContentResponse, ApiTags } from '@nestjs/swagger'
+import { ApiBody, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { Response } from 'express'
-import { UserService } from 'src/modules/user/user.service'
-import { PublicApi } from '../../guards/auth.guard'
-import { Cookies } from '../../utils'
+import { UserService } from '@modules/user/user.service'
+import { PublicApi } from '@common/guards/auth.guard'
+import { Cookies } from '@common/utils'
 import { AuthService } from './auth.service'
 
 const { parse } = Cookies()
@@ -16,7 +16,7 @@ export class AuthController {
 
   //  二维码内容
   @ApiOperation({ summary: '获取QQ登录二维码', description: '得到base64编码的二维码图片' })
-  @ApiOkResponse({
+  @ApiResponse({
     status: 200,
     description: '二维码内容',
     example: {
@@ -38,6 +38,7 @@ export class AuthController {
     return { cookie, base64 }
   }
 
+  @ApiOperation({ summary: '获取QQ登录二维码', description: '得到二维码图片' })
   @Get('qq/qrpic')
   async QRCodePic(@Res() res: Response) {
     const { cookie, qr } = await this.auth.GET_QQ_QR()
@@ -45,11 +46,13 @@ export class AuthController {
       res.cookie(key, value)
     })
     res.type('image/png')
-
     res.send(qr)
   }
 
   @Get('qq/state')
+  @ApiOperation({ summary: '获取QQ登录二维码状态', description: '得到二维码状态' })
+  @ApiResponse({ description: '登录成功', status: 200, example: [{ data: { code: 0, msg: '登录成功' }, code: 200, message: '请求成功' }] })
+
   checkQRCode(@Headers('Cookie') cookie: string) {
     return this.auth.GET_QQ_State(cookie)
   }

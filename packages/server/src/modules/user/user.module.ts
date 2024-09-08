@@ -1,16 +1,13 @@
-import process from 'node:process'
 import { Module } from '@nestjs/common'
-import { TypeOrmModule } from '@nestjs/typeorm'
+import { MikroOrmModule } from '@mikro-orm/nestjs'
+import { User } from '@entities/user.entity'
 import { UserService } from './user.service'
 import { UserController } from './user.controller'
-import { User } from './entities/user.entity'
 
 @Module({
   exports: [UserService],
-  imports: [TypeOrmModule.forFeature([User])],
+  imports: [],
   controllers: [UserController],
-  providers: [
-    UserService,
-  ],
+  providers: [UserService, UserModule],
 })
 export class UserModule {}

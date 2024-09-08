@@ -1,69 +1,48 @@
 import { Injectable } from '@nestjs/common'
-import { ApiTags } from '@nestjs/swagger'
-import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm'
-import { DataSource, Repository } from 'typeorm'
+import { InjectRepository } from '@mikro-orm/nestjs'
+import { BaseRepository } from '@common/database'
+import { User } from '@entities/user.entity'
 import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
-import { User } from './entities/user.entity'
+import { FindUserListDto } from './dto/find-user.dto'
 
 @Injectable()
 export class UserService {
-  constructor(
-    @InjectRepository(User) private repository: Repository<User>,
-  ) { }
+  constructor(@InjectRepository(User) private repository: BaseRepository<User>) {}
 
-  async create(User: CreateUserDto) {
-    const DUser = await this.repository.save(User)
-    return DUser
+  create(User: CreateUserDto) {
+    return this.repository.create(User)
   }
 
   async findorCreate(User: CreateUserDto) {
-    const DUser = await this.findByUsername(User.username)
-    if (DUser) {
-      await this.update(DUser.id, User)
-      return
-    }
-    await this.create(User)
+    return User
   }
 
   async userInfo(id: number) {
-    const { password, ...User } = await this.getPrviteUser({ id }) || {}
-    return User
+    return id
   }
 
   private getPrviteUser(User: UpdateUserDto & { id?: number }) {
-    return this.repository.createQueryBuilder('user').select([
-      'user.type',
-      'user.id',
-      'user.password',
-      'user.username',
-      'user.avatar',
-      'user.nickname',
-      'user.role',
-      'user.updated_at',
-      'user.created_at',
-      'user.deleted_at',
-      'user.status',
-      'user.detail',
-    ]).where(User).getOne()
-  }
-
-  async findById(id: number) {
-    const User = await this.repository.findOneBy({ id })
-    if (!User)
-      throw new Error('用户不存在')
     return User
   }
 
+  async findById(id: number) {
+    return this.repository.findById(id)
+  }
+
   findByUsername(username: string) {
-    return this.repository.findOneBy({ username })
+    return username
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
-    return this.repository.update(id, updateUserDto)
+    return { id, updateUserDto }
   }
 
   remove(id: number) {
-    return this.repository.delete({ id })
+    return id
+  }
+
+  async findAll({ keyword, sortBy, order, page, pageSize }: FindUserListDto) {
+    return { keyword, sortBy, order, page, pageSize }
   }
 }
